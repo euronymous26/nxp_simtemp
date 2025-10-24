@@ -1,6 +1,8 @@
 #
 # build.sh file to compile NXP temperature sensor module (kernel module).
-# Author: Enrique Mireles Rodriguez
+# Author: Enrique Mireles Rodriguez.
+#         <mireles.rodriguez.enrique@gmail.com>
+# Version: 1.0.
 #
 
 #!/bin/sh
