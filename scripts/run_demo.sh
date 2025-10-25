@@ -13,12 +13,14 @@
 # CONFIGURATION 
 # =====================================================================
 set -u
+PYTHON_SCRIPT="main.py"
 MODULE="nxp_simtemp"
 KO_FILE="${MODULE}.ko"
 DMESG_LINES=25
 
 PROJECT_DIR="$(pwd)"
 MODULE_DIR="$PROJECT_DIR/kernel"
+PY_SCRIPT_DIR="$PROJECT_DIR/user/cli"
 
 # =====================================================================
 # SCRIPT LOGIC TO INSERT KERNEL MODULE
@@ -35,7 +37,13 @@ trap cleanup EXIT INT TERM
 
 # Check KO file existence.
 if [ ! -f "$MODULE_DIR/${KO_FILE}" ]; then
-    echo "Error: ${KO_FILE} not found in $(pwd)"
+    echo "Error: ${KO_FILE} not found in $PROJECT_DIR/kernel"
+    exit 2
+fi
+
+# Check python script existence.
+if [ ! -f "$PY_SCRIPT_DIR/${PYTHON_SCRIPT}" ]; then
+    echo "Error: ${PYTHON_SCRIPT} not found in $PY_SCRIPT_DIR/${PYTHON_SCRIPT}"
     exit 2
 fi
 
@@ -57,11 +65,24 @@ echo "----- dmesg | tail -n ${DMESG_LINES} -----"
 dmesg | tail -n "${DMESG_LINES}"
 echo "----- end dmesg -----"
 echo
-sleep 2
 
 # 2) Configure path "echo "
-echo 1000,70000 | sudo tee /sys/module/nxp_simtemp/parameters/input_param
+echo 1000 | sudo tee /sys/module/nxp_simtemp/parameters/sampling_ms
 sleep 2
+echo
+echo "----- dmesg | tail -n ${DMESG_LINES} -----"
+dmesg | tail -n "${DMESG_LINES}"
+echo "----- end dmesg -----"
+echo
+
+# 3) Configure path "echo "
+echo 70000 | sudo tee /sys/module/nxp_simtemp/parameters/threshold_mC
+sleep 2
+echo
+echo "----- dmesg | tail -n ${DMESG_LINES} -----"
+dmesg | tail -n "${DMESG_LINES}"
+echo "----- end dmesg -----"
+echo
 
 # last instruction to test kernel module performance.
 echo
@@ -69,6 +90,12 @@ echo "----- dmesg | tail -n ${DMESG_LINES} -----"
 dmesg | tail -n "${DMESG_LINES}"
 echo "----- end dmesg -----"
 echo
+
+echo "Executing python script: ${PYTHON_SCRIPT}"
+if ! sudo python3 "$PY_SCRIPT_DIR/${PYTHON_SCRIPT}"; then
+    echo "python script failed"
+    exit 3
+fi
 
 # =====================================================================
 # SCRIPT LOGIC TO REMOVE KERNEL MODULE

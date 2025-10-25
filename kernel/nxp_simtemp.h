@@ -5,6 +5,8 @@
 #include <linux/kernel.h>
 #include <linux/types.h>
 
+#define DEVICE_NAME "simtemp"
+#define CLASS_NAME "simtemp_class"
 #define MIN_SIMTEMP -40000
 #define MAX_SIMTEMP 150000
 
